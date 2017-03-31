@@ -42,6 +42,7 @@ To enable the SendSecure File Poller service:
    * ```source_path```: the path of the folder to be polled by the service.
    * ```enterprise_account```: your SendSecure enterprise account (unique identifier).
    * ```api_token```: the Access Token.
+   * ```polling_interval```: the polling interval (in seconds)
 3. Start the **SendSecure File Poller** service.
 
 <a name="usage"></a>
