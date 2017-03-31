@@ -106,10 +106,15 @@ def process_file_job(filepath, config):
             files_to_delete = create_safe_box(source_data, filepath, config)
             done = True
         except Exception, e:
+            if f:
+                f.close()
+                f = None
             logger.error('File job processing error: %s (%s)', filepath, str(e))
             move_to_failed_subfolder(filepath)
         finally:
-            f.close()
+            if f:
+                f.close()
+                f = None
             if done:
                 for file in files_to_delete:
                     logger.info('Deleting file: "%s"', file)
