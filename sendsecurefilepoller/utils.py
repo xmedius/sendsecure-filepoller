@@ -105,6 +105,9 @@ def process_file_job(filepath, config):
             source_data = _parse_source_file(f, filepath)
             files_to_delete = create_safe_box(source_data, filepath, config)
             done = True
+        except Exception, e:
+            logger.error('File job processing error: %s (%s)', filepath, str(e))
+            move_to_failed_subfolder(filepath)
         finally:
             f.close()
             if done:
@@ -112,8 +115,7 @@ def process_file_job(filepath, config):
                     logger.info('Deleting file: "%s"', file)
                     remove(file)
     except Exception, e:
-        logger.error('File job processing error: %s (%s)', filepath, str(e))
-        move_to_failed_subfolder(filepath)
+        logger.error('Failed to access file: %s (%s)', filepath, str(e))
     logger.info('\--PROCESSING FILE JOB...DONE!')
 
 def _is_a_sendsecure_filejob(filepath):
