@@ -26,6 +26,8 @@ It is expressly designed to allow for the secured exchange of sensitive document
 
 ## Install Package
 
+Run the following command as an administrator:
+
 ```
 pip install https://github.com/xmedius/sendsecure-filepoller/tarball/master --process-dependency-links
 ```
@@ -36,7 +38,7 @@ pip install https://github.com/xmedius/sendsecure-filepoller/tarball/master --pr
 To enable the SendSecure File Poller service:
 
 1. Get an Access Token with "Manage SendSecure" permission for your SendSecure enterprise account.
-2. Edit the file "config.ini" and change the following values:
+2. Edit the file "$PYTHON_HOME\Lib\site-packages\sendsecurefilepoller\config.ini" and change the following values:
    * ```source_path```: the path of the folder to be polled by the service.
    * ```enterprise_account```: your SendSecure enterprise account (unique identifier).
    * ```api_token```: the Access Token.
