@@ -58,7 +58,7 @@ To send files through a SafeBox using the SendSecure File Poller service:
         "subject": "Family matters",
         "message": "Son, you will find attached the evidence.",
         "security_profile": {
-            "name": "Sith Security Level",
+            "name": "Sith Security Level"
         },
         "recipients": [{
             "email": "lukeskywalker@rebels.com",
@@ -69,7 +69,7 @@ To send files through a SafeBox using the SendSecure File Poller service:
         }],
         "attachments": [{
             "file_path": "Birth_Certificate.pdf",
-            "content_type": "application/pdf",
+            "content_type": "application/pdf"
         }]
     }
 }
