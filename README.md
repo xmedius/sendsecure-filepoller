@@ -26,7 +26,7 @@ It is expressly designed to allow for the secured exchange of sensitive document
 
 ## Install Package
 
-```python
+```
 pip install https://github.com/xmedius/sendsecure-filepoller/tarball/master --process-dependency-links
 ```
 
