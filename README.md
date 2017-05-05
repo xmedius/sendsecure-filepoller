@@ -26,6 +26,12 @@ It is expressly designed to allow for the secured exchange of sensitive document
 
 ## Install Package
 
+Upgrade pip to its latest version:
+
+```
+python.exe -m pip install --upgrade pip
+```
+
 Run the following command as an administrator:
 
 ```
