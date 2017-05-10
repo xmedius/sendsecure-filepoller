@@ -23,14 +23,12 @@ It is expressly designed to allow for the secured exchange of sensitive document
 - Python version 2.7
 - [pywin32](https://sourceforge.net/projects/pywin32/files/pywin32/) for installed Python version
 - The SendSecure service, provided by [XMedius](https://www.xmedius.com/en/products?source=sendsecure-filepoller) (demo accounts available on demand)
+- Pip updated to its latest version:
+  ```
+  python.exe -m pip install --upgrade pip
+  ```
 
 ## Install Package
-
-Upgrade pip to its latest version:
-
-```
-python.exe -m pip install --upgrade pip
-```
 
 Run the following command as an administrator:
 
