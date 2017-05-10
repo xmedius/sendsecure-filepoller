@@ -1,6 +1,6 @@
 import logging
 import utils
-from os.path import join, split
+from os.path import join, split, getsize
 from sendsecure import Safebox, Recipient, ContactMethod, Attachment, Client
 
 def _is_attachment_allowed(extension_filter, file_extension):
@@ -34,15 +34,21 @@ def _add_recipients(safebox, recipients):
                 recipient.contact_methods.append(ContactMethod(cm['destination'], cm['destination_type']))
         safebox.recipients.append(recipient);
 
+def _encode_file_name(filename):
+    if all(ord(c) < 128 for c in filename):
+        return str(filename)
+    return unicode(filename)
+
 def _add_attachments(safebox, attachments, extension_filter, localpath):
     files_to_delete = []
     for a in attachments:
         if not _is_attachment_allowed(extension_filter, utils.get_file_extension(a['file_path'])):
             raise RuntimeError, 'File type "' + utils.get_file_extension(a['file_path']) + '" is not allowed by enterprise settings'
-        path, filename = split(str(a['file_path']))
+        path, filename = split(a['file_path'])
         if not path:
             path = localpath
-        attachment = Attachment(join(path, filename), str(a['content_type']))
+        file_size = getsize(join(path, filename))
+        attachment = Attachment(open(join(path, filename), 'rb'), str(a['content_type']), _encode_file_name(filename), file_size)
         safebox.attachments.append(attachment);
         if 'delete' not in a.keys() or a['delete']:
             files_to_delete.append(join(path, filename))
@@ -87,21 +93,26 @@ def create_safe_box(j, filename, config):
     path = split(filename)[0]
     client = Client(client_config['api_token'], client_config['enterprise_account'], client_config['endpoint'], client_config['locale'])
     safebox = Safebox(s['user_email'])
-    if 'subject' in s.keys():
-        safebox.subject = s['subject']
-    if 'message' in s.keys():
-        safebox.message  = s['message']
-    if 'notification_language' in s.keys():
-        safebox.notification_language  = s['notification_language']
-    if 'security_profile' in s.keys():
-        _set_security_profile(safebox, s['security_profile'], client.get_security_profiles(s['user_email']))
-    if 'recipients' in s.keys():
-        _add_recipients(safebox, s['recipients'])
-    if 'attachments' in s.keys():
-        files_to_delete = _add_attachments(safebox, s['attachments'], client.get_enterprise_settings().extension_filter, path)
-    files_to_delete.append(filename)
+    try:
+        if 'subject' in s.keys():
+            safebox.subject = s['subject']
+        if 'message' in s.keys():
+            safebox.message  = s['message']
+        if 'notification_language' in s.keys():
+            safebox.notification_language  = s['notification_language']
+        if 'security_profile' in s.keys():
+            _set_security_profile(safebox, s['security_profile'], client.get_security_profiles(s['user_email']))
+        if 'recipients' in s.keys():
+            _add_recipients(safebox, s['recipients'])
+        if 'attachments' in s.keys():
+            files_to_delete = _add_attachments(safebox, s['attachments'], client.get_enterprise_settings().extension_filter, path)
+        files_to_delete.append(filename)
 
-    logger = logging.getLogger("SSFilePollerRotatingLog")
-    safe_response = client.submit_safebox(safebox);
-    logger.info('SafeBox was successfully created with SafeBox ID: %s', safe_response.guid)
-    return files_to_delete
+        logger = logging.getLogger("SSFilePollerRotatingLog")
+        safe_response = client.submit_safebox(safebox);
+        logger.info('SafeBox was successfully created with SafeBox ID: %s', safe_response.guid)
+        return files_to_delete
+    finally:
+        for attachment in safebox.attachments:
+            attachment.source.close()
+

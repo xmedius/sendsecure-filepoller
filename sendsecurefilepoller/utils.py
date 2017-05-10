@@ -1,5 +1,6 @@
 import ConfigParser
 import logging
+import codecs
 from logging.handlers import RotatingFileHandler
 from time import strftime, sleep
 from os import stat, mkdir, rename, listdir, remove
@@ -83,7 +84,7 @@ def get_client_config(config):
 def _parse_source_file(f, filename):
     if get_file_extension(filename).lower() == 'json':
         import json
-        return json.load(f, 'UTF-8')
+        return json.load(f)
     else:
         """
         Custom parsing could be implemented here, as long as the returned data structure is
@@ -99,7 +100,7 @@ def process_file_job(filepath, config):
 
     try:
         files_to_delete = []
-        f = open(filepath, 'rb')
+        f = codecs.open(filepath,'rb', 'utf-8-sig')
         try:
             done = False
             source_data = _parse_source_file(f, filepath)

@@ -80,6 +80,8 @@ To send files through a SafeBox using the SendSecure File Poller service:
     }
 }
 ```
+**Important:** ensure to save this control file using UTF-8 encoding.
+
 2. Drop the file(s) to attach to the SafeBox in the location(s) specified in the control file.
 3. Drop the control file in the folder monitored by the SendSecure File Poller service (as specified in config.ini).
 
