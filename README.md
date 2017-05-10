@@ -20,7 +20,7 @@ It is expressly designed to allow for the secured exchange of sensitive document
 
 ## Prerequisites
 
-- Python version 2.7, 3.4 or 3.5
+- Python version 2.7
 - [pywin32](https://sourceforge.net/projects/pywin32/files/pywin32/) for installed Python version
 - The SendSecure service, provided by [XMedius](https://www.xmedius.com/en/products?source=sendsecure-filepoller) (demo accounts available on demand)
 
