@@ -1,4 +1,4 @@
-**XMediusSENDSECURE (SendSecure)** is a collaborative file exchange platform that is both highly secure and simple to use.
+**XM SendSecure** is a collaborative file exchange platform that is both highly secure and simple to use.
 It is expressly designed to allow for the secured exchange of sensitive documents via virtual SafeBoxes.
 
 # sendsecure-filepoller
@@ -20,13 +20,16 @@ It is expressly designed to allow for the secured exchange of sensitive document
 
 ## Prerequisites
 
-- Python version 2.7
-- [pywin32](https://sourceforge.net/projects/pywin32/files/pywin32/) for installed Python version
-- The SendSecure service, provided by [XMedius](https://www.xmedius.com/en/products?source=sendsecure-filepoller) (demo accounts available on demand)
+- Python version 3.7
 - Pip updated to its latest version:
   ```
   python.exe -m pip install --upgrade pip
   ```
+- [pywin32](https://github.com/mhammond/pywin32) for installed Python
+    ```
+    pip install pywin32
+    ```
+- The SendSecure service, provided by [XMedius](https://www.xmedius.com/en/products?source=sendsecure-filepoller) (demo accounts available on demand)
 
 ## Install Package
 
@@ -49,6 +52,8 @@ To enable the SendSecure File Poller service:
    * ```polling_interval```: the polling interval (in seconds)
 3. Start the **SendSecure File Poller** service.
 
+**Important:** Save the config file using UTF-8 encoding, the presence of a BOM will lead to an error.
+
 <a name="usage"></a>
 # Usage
 
@@ -61,15 +66,18 @@ To send files through a SafeBox using the SendSecure File Poller service:
         "user_email": "darthvader@empire.com",
         "subject": "Family matters",
         "message": "Son, you will find attached the evidence.",
-        "security_profile": {
-            "name": "Sith Security Level"
-        },
-        "recipients": [{
+        "security_profile_name": "Sith Security Level",
+        "participants": [{
+            "first_name": "",
+            "last_name": "",
             "email": "lukeskywalker@rebels.com",
-            "contact_methods": [{
+            "guest_options": {
+              "company_name": "",
+              "contact_methods": [{
                 "destination": "555-232-5334",
                 "destination_type": "cell"
-            }]
+              }]
+            }
         }],
         "attachments": [{
             "file_path": "Birth_Certificate.pdf",

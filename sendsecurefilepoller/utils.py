@@ -1,11 +1,10 @@
-import ConfigParser
+from configparser import ConfigParser, MissingSectionHeaderError
 import logging
 import codecs
 from logging.handlers import RotatingFileHandler
 from time import strftime, sleep
-from os import stat, mkdir, rename, listdir, remove
+from os import stat, mkdir, rename, listdir, remove, fspath
 from os.path import isfile, join, splitext, split, dirname, exists
-from sendsecurehelpers import create_safe_box
 
 logger = None
 
@@ -50,14 +49,20 @@ def move_to_failed_subfolder(filepath):
     rename(filepath, new_file)
 
 def get_config(section_name):
-    localpath = dirname(__file__)
-    config = ConfigParser.ConfigParser()
-    config.read(join(localpath, 'config.ini'))
-    dict1 = {}
-    options = config.options(section_name)
-    for option in options:
-        dict1[option] = config.get(section_name, option)
-    return dict1
+    try:
+        localpath = dirname(__file__)
+        config = ConfigParser()
+        config.read_file(codecs.open(join(localpath, 'config.ini'), 'r', 'utf-8'))
+        dict1 = {}
+        options = config.options(section_name)
+        for option in options:
+            dict1[option] = config.get(section_name, option)
+        return dict1
+    except MissingSectionHeaderError as e:
+        print('Config is missing Section Header:')
+        print('  This can be caused by a BOM introduced in config file')
+        print('  First line of the config file :\n\t', e.line.encode('utf-8'), '\n')
+    raise RuntimeError("Could not read config")
 
 def get_config_value_with_default(config, value_name, default_value):
     try:
@@ -68,15 +73,15 @@ def get_config_value_with_default(config, value_name, default_value):
 def get_client_config(config):
     dict1 = {}
     if 'enterprise_account' not in config.keys():
-        raise RuntimeError, '"enterprise_account" setting is missing in config.ini'
+        raise RuntimeError('"enterprise_account" setting is missing in config.ini')
     if 'api_token' not in config.keys():
-        raise RuntimeError, '"api_token" setting is missing in config.ini'
+        raise RuntimeError('"api_token" setting is missing in config.ini')
     dict1['enterprise_account'] = config['enterprise_account'].strip()
     if not dict1['enterprise_account']:
-        raise RuntimeError, '"enterprise_account" setting is not configured in config.ini'
-    dict1['api_token'] = config['api_token'].strip()
-    if not dict1['api_token']:
-        raise RuntimeError, '"api_token" setting is not configured in config.ini'
+        raise RuntimeError('"enterprise_account" setting is not configured in config.ini')
+    dict1['token'] = config['api_token'].strip()
+    if not dict1['token']:
+        raise RuntimeError('"api_token" setting is not configured in config.ini')
     dict1['endpoint'] = get_config_value_with_default(config, 'endpoint', 'https://portal.xmedius.com')
     dict1['locale'] =  get_config_value_with_default(config, 'locale', 'en')
     return dict1
@@ -91,22 +96,23 @@ def _parse_source_file(f, filename):
         the same as the one returned by the JSON parser's load method (dictionary of tuples).
         That way, no modifications would be required in the rest of the code.
         """
-        raise RuntimeError, 'Unknown file format'
+        raise RuntimeError('Unknown file format')
 
 def process_file_job(filepath, config):
     logger = logging.getLogger("SSFilePollerRotatingLog")
     logger.info('/--PROCESSING FILE JOB...')
     logger.info('File name is: %s', filepath)
 
+    from sendsecurehelpers import create_safe_box
     try:
         files_to_delete = []
-        f = codecs.open(filepath,'rb', 'utf-8-sig')
+        f = codecs.open(filepath,'rb')
         try:
             done = False
             source_data = _parse_source_file(f, filepath)
             files_to_delete = create_safe_box(source_data, filepath, config)
             done = True
-        except Exception, e:
+        except Exception as e:
             if f:
                 f.close()
                 f = None
@@ -118,16 +124,18 @@ def process_file_job(filepath, config):
                 f = None
             if done:
                 for file in files_to_delete:
-                    logger.info('Deleting file: "%s"', file)
-                    remove(file)
-    except Exception, e:
+                    remove_file(file)
+    except Exception as e:
         logger.error('Failed to access file: %s (%s)', filepath, str(e))
     logger.info('\--PROCESSING FILE JOB...DONE!')
 
 def _is_a_sendsecure_filejob(filepath):
     if isfile(filepath):
         if get_file_extension(filepath).lower() == 'json':
-            return True
+            if is_file_writable(filepath):
+                return True
+            else:
+                logger.warning('Skipping: "%s", file is not writable', filepath)
     return False
 
 def process_jobs_in_folder(config):
@@ -165,7 +173,8 @@ def create_rotating_log(log_config, enable_console_logging):
     file_handler = MyRotatingFileHandler(logfilename,
                                          'w',
                                          int(get_config_value_with_default(log_config, 'max_log_size', '20000000')),
-                                         int(get_config_value_with_default(log_config, 'max_backup_count', '5')))
+                                         int(get_config_value_with_default(log_config, 'max_backup_count', '5')),
+                                         'utf-8')
     formatter = logging.Formatter(get_config_value_with_default(log_config,
                                                                 'log_format',
                                                                 '%(asctime)s - %(levelname)s - %(message)s'))
@@ -176,3 +185,21 @@ def create_rotating_log(log_config, enable_console_logging):
         logger.addHandler(console_handler)
     logger.addHandler(file_handler)
     logger.info('<<<<<<<<< <<<<<<<< LOG START >>>>>>>>> >>>>>>>>')
+
+def is_file_writable(filepath):
+    try:
+        f = open(filepath, 'ab')
+        f.close()
+        return True
+    except :
+        return False
+
+def remove_file(file_to_remove):
+    logger.info('Deleting file: "%s"', file_to_remove)
+    if is_file_writable(file_to_remove):
+        try:
+            remove(file_to_remove)
+        except:
+            logger.info('Could not delete file: "%s"', file_to_remove)
+    else :
+        logger.info('Cannot delete file: "%s",file is not writable, or does not exist', file_to_remove)

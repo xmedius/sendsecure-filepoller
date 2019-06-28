@@ -4,7 +4,7 @@ import win32event
 import servicemanager
 import socket
 import logging
-from utils import process_jobs_in_folder, get_config, create_rotating_log
+from utils import create_rotating_log, get_config, process_jobs_in_folder
 
 class XMSSServiceRunner (win32serviceutil.ServiceFramework):
     _svc_name_ = "sendsecurefilepoller"
@@ -40,9 +40,8 @@ class XMSSServiceRunner (win32serviceutil.ServiceFramework):
 
             while not self.IsStopping:
                 process_jobs_in_folder(get_config('settings'))
-        except Exception, e:
+        except Exception as e:
             logger.error(str(e))
 
 def handle_command_line(argv):
     return win32serviceutil.HandleCommandLine(XMSSServiceRunner, None, argv)
-

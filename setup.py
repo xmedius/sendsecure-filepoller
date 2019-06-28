@@ -17,7 +17,7 @@ class PostInstallCommand(install):
     def run(self):
         install.run(self)
         if not self.noservice:
-            import sendsecurefilepoller
+            from sendsecurefilepoller import sendsecurefilepoller
             sendsecurefilepoller.install_service(['--startup', 'auto', 'install'])
 
 setup(
@@ -29,9 +29,7 @@ setup(
     author='XMedius R&D',
     license='MIT',
     classifiers=[
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.7',
         'Environment :: Win32 (MS Windows)',
         'Operating System :: Microsoft :: Windows'
     ],
